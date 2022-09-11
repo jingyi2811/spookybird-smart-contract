@@ -39,13 +39,6 @@ describe("Public sale", function () {
     });
 
     describe("Airdrop",  function () {
-        it("Should not airdrop when address length is zero", async function () {
-            await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([], [])).to.be.revertedWithCustomError(
-                SpookyBirdsCandyMock,
-                "AddressesLengthMustBeGreaterThan0"
-            );
-        })
-
         it("Should not airdrop when address and qty length are different", async function () {
             await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [])).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,

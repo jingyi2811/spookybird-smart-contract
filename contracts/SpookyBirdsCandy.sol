@@ -51,7 +51,6 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      */
 
     event PreSaleMint(address indexed _from, uint indexed timestamp);
-    event PublicSaleAirdrop(address indexed _from, uint indexed timestamp, uint qty);
     event PublicSaleClaimAirdrop(address indexed _from, uint indexed timestamp, uint qty);
     event ZombieSaleBurnCandyTokenId(address indexed _from, uint indexed timestamp, uint tokenId);
     event ZombieSaleBurnCandy(address indexed _from, uint indexed timestamp, uint qty);
@@ -70,7 +69,6 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     error CannotPurchaseMoreThan1Time();
     error NotAWhitelistedAddress();
     // Public sale errors
-    error AddressesLengthMustBeGreaterThan0();
     error AddressesAndQtysLengthAreDifferent();
     error NoPublicSaleAirdrop();
     error CannotClaimMoreThan1Time();
@@ -188,11 +186,11 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
-     * 52_575 Gas unit per function call
-     * At 1766.65 usd/eth, 1.95 USD per call
-     * 8_888 Airdrop = 8_888 * 52_575 = 467_286_600, which is more than 30_000_000
-     * Recommendation: Call this function 16 times, every time 570 maximum addresses, with 52_575 * 570 = 29_967_750 (May not be accurate)
-     * Estimate total cost: 17331.6 USD for 8888 airdrop  (May not be accurate)
+     * 2_992_042 Gas unit per function call by passing 128 addresses
+     * At 1772.01 usd/eth, 111.34 USD per call
+     * 8_888 Airdrop = 8_888 / 128 = 69.4375 which is at least 70 times
+     * Recommendation: Call this function 70 times, every time 128 addresses
+     * Estimate total cost: 70 * 111.34 = 7793.8 USD for 8888 airdrop  (May not be accurate)
      *
      * Customize functions - PUBLIC_SALE functions
      * 1 - Admin airdrops candy(s) to different whitelisted addresses.
@@ -200,11 +198,9 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      */
 
     function publicSaleAirDrop(address[] calldata addresses_, uint[] calldata qtys_) external onlyOwner phaseRequired(Phase.PUBLIC_SALE) {
-        if (addresses_.length == 0) revert AddressesLengthMustBeGreaterThan0();
         if (addresses_.length != qtys_.length) revert AddressesAndQtysLengthAreDifferent();
         for (uint i = 0; i < addresses_.length;) {
             _publicSaleAirDropAddressQty[addresses_[i]] = qtys_[i];
-            emit PublicSaleAirdrop(addresses_[i], block.timestamp, qtys_[i]);
             {
             unchecked{++i;} // Save gas
             }
