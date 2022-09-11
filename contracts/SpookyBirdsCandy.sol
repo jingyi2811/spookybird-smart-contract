@@ -165,7 +165,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (totalSupply() >= MAX_SUPPLY) revert TotalSupplyHasReached();
         // While testing, comment the next line and use this line => if (_presaleMintQty >= 4) revert PreSaleClosed();
-        if (_presaleMintQty >= 888) revert PreSaleClosed();f
+        if (_presaleMintQty >= 888) revert PreSaleClosed();
         if (msg.value != 0.276 ether) revert PurchasedEtherMustBeCorrect();
         if (_hasPresaleAddressSold[msg.sender]) revert CannotPurchaseMoreThan1Time();
         _presaleMintQty = _presaleMintQty + 4;
