@@ -100,7 +100,7 @@ describe("Public sale", function () {
             // Claim
             await SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)
 
-            expect(await SpookyBirdsCandyMock._hasPublicsaleAddressClaimed(account1.address)).to.be.true
+            expect(await SpookyBirdsCandyMock._hasPublicSaleAddressClaimed(account1.address)).to.be.true
             expect(await SpookyBirdsCandyMock.totalSupply()).to.be.equal(2)
             expect(await SpookyBirdsCandyMock.balanceOf(account1.address)).to.be.equal(2)
         })

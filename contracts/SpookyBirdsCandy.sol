@@ -17,7 +17,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      */
 
     enum Phase {
-        NULL, // Either haven't start or has ended
+        NULL, // Either haven't start or have ended
         PRE_SALE,    // Stage 1
         PUBLIC_SALE, // Stage 2
         ZOMBIE_BIRD_SALE  // Stage 3
@@ -38,7 +38,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
 
     // Stage 2 - PUBLIC_SALE
     mapping(address => uint) public _publicSaleAirDropAddressQty;
-    mapping(address => bool) public _hasPublicsaleAddressClaimed;
+    mapping(address => bool) public _hasPublicSaleAddressClaimed;
 
     // Stage 3 - ZOMBIE_SALE
     IZombieBirdContract public _zombieBirdContract;
@@ -165,7 +165,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (totalSupply() >= MAX_SUPPLY) revert TotalSupplyHasReached();
         // While testing, comment the next line and use this line => if (_presaleMintQty >= 4) revert PreSaleClosed();
-        if (_presaleMintQty >= 888) revert PreSaleClosed();
+        if (_presaleMintQty >= 888) revert PreSaleClosed();f
         if (msg.value != 0.276 ether) revert PurchasedEtherMustBeCorrect();
         if (_hasPresaleAddressSold[msg.sender]) revert CannotPurchaseMoreThan1Time();
         _presaleMintQty = _presaleMintQty + 4;
@@ -195,9 +195,9 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     function publicMint(bytes32[] calldata proof_) external phaseRequired(Phase.PUBLIC_SALE) {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (_publicSaleAirDropAddressQty[msg.sender] == 0) revert NoPublicSaleAirdrop();
-        if (_hasPublicsaleAddressClaimed[msg.sender]) revert CannotClaimMoreThan1Time();
+        if (_hasPublicSaleAddressClaimed[msg.sender]) revert CannotClaimMoreThan1Time();
         uint airDropAddressQty = _publicSaleAirDropAddressQty[msg.sender]; // Save gas
-        _hasPublicsaleAddressClaimed[msg.sender] = true;
+        _hasPublicSaleAddressClaimed[msg.sender] = true;
         _safeMint(msg.sender, airDropAddressQty);
         emit PublicSaleClaimAirdrop(msg.sender, block.timestamp, airDropAddressQty);
     }
