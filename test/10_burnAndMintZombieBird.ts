@@ -131,7 +131,7 @@ describe("Burn and mint zombie bird", function () {
 
             const now = timestampBefore + 2_591_999
             await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
-            await ethers.provider.send('evm_mine');
+            await ethers.provider.send('evm_mine', []);
 
             // Account1 try to mint zombie bird 2 blocks after minting
             expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
@@ -160,7 +160,7 @@ describe("Burn and mint zombie bird", function () {
 
             const now = timestampBefore + 2_592_000
             await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
-            await ethers.provider.send('evm_mine');
+            await ethers.provider.send('evm_mine', []);
 
            expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                SpookyBirdsCandyMock,
@@ -188,7 +188,7 @@ describe("Burn and mint zombie bird", function () {
 
             const now = timestampBefore + 2_592_000
             await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
-            await ethers.provider.send('evm_mine');
+            await ethers.provider.send('evm_mine', []);
 
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })

@@ -16,7 +16,7 @@ describe("MerkleRoot", function () {
     let tree: MerkleTree;
 
 
-    before(async function () {
+    beforeEach(async function () {
         [admin, account1, account2] = await ethers.getSigners();
 
         const leaves = [account1.address, account2.address].map(x => keccak256(x))

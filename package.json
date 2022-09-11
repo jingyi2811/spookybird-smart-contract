@@ -18,5 +18,8 @@
     "hardhat": "^2.11.1",
     "keccak256": "^1.0.6",
     "merkletreejs": "^0.2.32"
+  },
+  "dependencies": {
+    "hardhat-gas-reporter": "^1.0.9"
   }
 }

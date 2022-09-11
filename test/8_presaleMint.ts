@@ -18,7 +18,7 @@ describe("Presale mint", function () {
         const addresses = [admin.address, account1.address, account2.address];
         const leaves = addresses.map(x => keccak256(x))
         const tree = new MerkleTree(leaves, keccak256, { sortPairs: true })
-        const buf2hex = x => `0x${x.toString('hex')}`
+        const buf2hex = (x: Buffer) => `0x${x.toString('hex')}`
 
         const SpookyBirdsCandyFactory = await ethers.getContractFactory("SpookyBirdsCandy");
         SpookyBirdsCandyMock = await SpookyBirdsCandyFactory.deploy("http://bird/");

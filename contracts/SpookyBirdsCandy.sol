@@ -142,10 +142,20 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         _currentMerkleRoot = currentMerkleRoot_;
     }
 
+    /**
+     * 99_076 Gas unit per IF MINT 1 tokenid
+     * At 1773.94 usd/eth,  3.69 USD per call TO MINT 1 tokenid
+     */
+
     function mint(address to, uint256 qty) external onlyOwner {
         if ((totalSupply() + qty) > MAX_SUPPLY) revert TotalSupplyHasReached();
         _safeMint(to, qty);
     }
+
+    /**
+     * 63_728 Gas unit per function call
+     * At 1)773.69 usd/eth,  2.37 USD per call
+     */
 
     function burn(uint256 tokenId) external onlyOwner {
         _burn(tokenId);
@@ -156,6 +166,9 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
+     * 155_017 Gas unit per function call
+     * At 1_762.05 usd/eth, 5.74 USD per call
+     *
      * Customize functions - PRE_SALE functions
      * 1 - Allow 222 different whitelisted addresses to buy candy.
      * 2 - Every address can only buy 4 candies with 0.276 Ether in 1 purchase.
@@ -175,6 +188,12 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
+     * 52_575 Gas unit per function call
+     * At 1766.65 usd/eth, 1.95 USD per call
+     * 8_888 Airdrop = 8_888 * 52_575 = 467_286_600, which is more than 30_000_000
+     * Recommendation: Call this function 16 times, every time 570 maximum addresses, with 52_575 * 570 = 29_967_750 (May not be accurate)
+     * Estimate total cost: 17331.6 USD for 8888 airdrop  (May not be accurate)
+     *
      * Customize functions - PUBLIC_SALE functions
      * 1 - Admin airdrops candy(s) to different whitelisted addresses.
      * 2 - User claims his airdropped candy(s).
@@ -203,6 +222,10 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
+     * 210_316 Gas unit per function call
+     * At 1_765.66 usd/eth, 7.80 USD per call
+     * Recommendation: Call this function with maximum 142 tokenIds, with 142 * 210_316 = 29_864_872 (May not be accurate)
+     *
      * Customize functions - ZOMBIE_BIRD_SALE functions
      * 1 - User burns 4 candies to buy a zombie.
      * 2 - Admin need to set zombie bird address (Only can set once).
