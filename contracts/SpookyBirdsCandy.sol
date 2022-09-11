@@ -104,11 +104,11 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      * Openzeppelin functions
      */
 
-    function pause() public onlyOwner {
+    function pause() external onlyOwner {
         _pause();
     }
 
-    function unpause() public onlyOwner {
+    function unpause() external onlyOwner {
         _unpause();
     }
 
@@ -129,7 +129,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         return _myBaseURI;
     }
 
-    function setBaseURI(string memory myBaseURI_) public onlyOwner {
+    function setBaseURI(string memory myBaseURI_) external onlyOwner {
         _myBaseURI = myBaseURI_;
     }
 
