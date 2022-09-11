@@ -20,9 +20,6 @@ describe("Pause", function () {
 
             // transfer
             await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
-            // burn
-            await SpookyBirdsCandyMock.connect(account2).setApprovalForAll(admin.address, true);
-            await SpookyBirdsCandyMock.connect(admin).burn(0);
         })
 
         it("Should be able to mint, transfer and burn with approve ", async function () {
@@ -30,11 +27,6 @@ describe("Pause", function () {
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
             // transfer
             await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
-            // burn
-            expect(await SpookyBirdsCandyMock.getApproved(0)).to.equal("0x0000000000000000000000000000000000000000");
-            await SpookyBirdsCandyMock.connect(account2).approve(admin.address, 0);
-            expect(await SpookyBirdsCandyMock.getApproved(0)).to.equal(admin.address);
-            await SpookyBirdsCandyMock.connect(admin).burn(0);
         })
     });
 
@@ -58,12 +50,6 @@ describe("Pause", function () {
 
             // transfer
             await expect(SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0))
-                .to.be.revertedWith('Pausable: paused');
-
-            await SpookyBirdsCandyMock.connect(account1).setApprovalForAll(admin.address, true);
-
-            // burn
-            await expect(SpookyBirdsCandyMock.connect(admin).burn(0))
                 .to.be.revertedWith('Pausable: paused');
         })
 
@@ -90,9 +76,6 @@ describe("Pause", function () {
 
             // transfer
             await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
-            // burn
-            await SpookyBirdsCandyMock.connect(account2).setApprovalForAll(admin.address, true);
-            await SpookyBirdsCandyMock.connect(admin).burn(0);
         })
 
         it("Non admin should not able to unpause", async function () {

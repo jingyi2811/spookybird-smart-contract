@@ -147,7 +147,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         _safeMint(to, qty);
     }
 
-    function burn(uint256 tokenId) external {
+    function burn(uint256 tokenId) external onlyOwner {
         _burn(tokenId);
     }
 
