@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
+//import "hardhat/console.sol";
+
 interface IZombieBirdContract {
     function mint(address to, uint qty) external returns (bool);
 }
@@ -42,8 +44,10 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     // Stage 3 - ZOMBIE_SALE
     IZombieBirdContract public _zombieBirdContract;
     bool public _hasZombieContractSet;
-    mapping(address => uint) public _addressBoughtZombieBirdQty;
-    mapping(address => uint) public _addressBoughtTimestamp;
+    mapping(address => uint) public _addressZombieBirdBoughtTimes;
+    mapping(address => mapping(uint => uint)) public _addressZombieBirdBoughtQtys;
+    mapping(address => mapping(uint => uint)) public _addressZombieBirdBoughtTimestamps;
+    mapping(address => mapping(uint => bool)) public _addressZombieBirdBoughtHasDistributed;
 
     /**
      * Events
@@ -53,7 +57,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     event PublicSaleClaimAirdrop(address indexed _from, uint indexed timestamp, uint qty);
     event ZombieSaleBurnCandyTokenId(address indexed _from, uint indexed timestamp, uint tokenId);
     event ZombieSaleBurnCandy(address indexed _from, uint indexed timestamp, uint qty);
-    event ZombieClaimed(address indexed _from, uint indexed boughtTimestamp, uint indexed claimedTimestamp, uint qty);
+    event ZombieClaimed(address indexed _from, uint indexed claimedTimestamp, uint qty);
 
     /**
      * Errors
@@ -215,9 +219,9 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
-     * 210_316 Gas unit per function call
-     * At 1_765.66 usd/eth, 7.80 USD per call
-     * Recommendation: Call this function with maximum 142 tokenIds, with 142 * 210_316 = 29_864_872 (May not be accurate)
+     * 232_827 Gas unit per function call
+     * At 1_731.38 usd/eth, 8.47 USD per call
+     * Recommendation: Call this function with maximum 142 tokenIds, with 128 * 232_827 = 29_801_856 (May not be accurate)
      *
      * Customize functions - ZOMBIE_BIRD_SALE functions
      * 1 - User burns 4 candies to buy a zombie.
@@ -230,8 +234,13 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if (length == 0) revert CandyQtyMustNotBe0();
         if (length % 4 != 0) revert CandyQtyMustBeInMutiplyOf4();
         if (length > balanceOf(msg.sender)) revert CandyQtyMustBeLessOrEqualToBalance();
-        _addressBoughtZombieBirdQty[msg.sender] = _addressBoughtZombieBirdQty[msg.sender] + length / 4;
-        _addressBoughtTimestamp[msg.sender] = block.timestamp;
+
+        uint times = _addressZombieBirdBoughtTimes[msg.sender];
+        _addressZombieBirdBoughtQtys[msg.sender][times] = length / 4;
+        _addressZombieBirdBoughtTimestamps[msg.sender][times] = block.timestamp;
+        {
+        unchecked{++_addressZombieBirdBoughtTimes[msg.sender];}
+        }
 
         for (uint i = 0; i < tokenIds_.length;) {
             _burn(tokenIds_[i]);
@@ -252,12 +261,25 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
 
     function mintZombieBird() external phaseRequired(Phase.ZOMBIE_BIRD_SALE) {
         if (!_hasZombieContractSet) revert ZombieAddressWasNotYetSet();
-        uint addressBoughtTimestamp = _addressBoughtTimestamp[msg.sender]; // Save gas
-        if (block.timestamp - addressBoughtTimestamp < 2_592_000) revert ZombieNeedsMoreOrEqualTo30DaysToBeClaimed(); // Need more or equal to 30 days
-        uint addressBoughtZombieBirdQty = _addressBoughtZombieBirdQty[msg.sender]; // Save gas
+        uint times = _addressZombieBirdBoughtTimes[msg.sender];
+        uint addressBoughtZombieBirdQty = 0;
+
+        for (uint i = 0; i < times;) {
+            uint addressBoughtTimestamp = _addressZombieBirdBoughtTimestamps[msg.sender][i];
+            if (block.timestamp - addressBoughtTimestamp >= 2_592_000 && !_addressZombieBirdBoughtHasDistributed[msg.sender][i]) {
+                addressBoughtZombieBirdQty = addressBoughtZombieBirdQty + _addressZombieBirdBoughtQtys[msg.sender][i];
+                _addressZombieBirdBoughtHasDistributed[msg.sender][i] = true;
+            }
+            {
+            unchecked{++i;} // Save gas
+            }
+        }
+
+        if(addressBoughtZombieBirdQty == 0) revert ZombieNeedsMoreOrEqualTo30DaysToBeClaimed(); // Need more or equal to 30 days
+        // console.log("Qty minted", addressBoughtZombieBirdQty);
         bool canMint = _zombieBirdContract.mint(msg.sender, addressBoughtZombieBirdQty);
         if (!canMint) revert UnableToMintZombieBird();
-        emit ZombieClaimed(msg.sender, addressBoughtTimestamp, block.timestamp, addressBoughtZombieBirdQty);
+        emit ZombieClaimed(msg.sender, block.timestamp, addressBoughtZombieBirdQty);
     }
 
     function getCurrentBlockTimestamp() external view returns (uint256) {

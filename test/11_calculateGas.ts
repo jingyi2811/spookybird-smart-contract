@@ -1,5 +1,6 @@
 import {ethers} from "hardhat";
 import {Signer} from "ethers";
+import {expect} from "chai";
 
 export const randomSigners = async (admin: any, amount: number): Promise<any[]> => {
     const signers: Signer[] = []
@@ -14,6 +15,7 @@ export const randomSigners = async (admin: any, amount: number): Promise<any[]> 
 
 describe("Calculate gas", function () {
     let admin: any
+    let account1: any
 
     let SpookyBirdsCandyFactory: any
     let SpookyBirdsCandyMock: any
@@ -21,20 +23,24 @@ describe("Calculate gas", function () {
     let account2Proof: any
 
     let addressArr: any
+    let ZombieBirdFactoryMock: any
 
     beforeEach(async function () {
-        [admin] = await ethers.getSigners();
+        [admin, account1] = await ethers.getSigners();
 
         addressArr = await randomSigners(admin, 150);
         const SpookyBirdsCandyFactory = await ethers.getContractFactory("SpookyBirdsCandy");
         SpookyBirdsCandyMock = await SpookyBirdsCandyFactory.deploy("http://bird/");
 
-        await SpookyBirdsCandyMock.connect(admin).setPhase(2, ethers.utils.formatBytes32String(""));
+        const ZombieBirdFactory = await ethers.getContractFactory("ZombieBird");
+        ZombieBirdFactoryMock = await ZombieBirdFactory.deploy();
     });
 
     describe("Airdrop",  function () {
         it("Should airdrop", async function () {
-           await SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([
+            await SpookyBirdsCandyMock.connect(admin).setPhase(2, ethers.utils.formatBytes32String(""));
+
+            await SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([
                addressArr[0].address,
                addressArr[1].address,
                addressArr[2].address,
@@ -295,4 +301,37 @@ describe("Calculate gas", function () {
            ])
         })
     });
+
+    describe("Burn candy",  function () {
+        it("Should burn", async function () {
+            await SpookyBirdsCandyMock.connect(admin).setPhase(3, ethers.utils.formatBytes32String(""));
+
+            // Admin mints 4 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
+
+            // Should get 0 zombie bird, timestamp and times
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(0)
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0, 1, 2, 3])
+
+            const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+
+            // Should get 1 zombie bird
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(timestamp)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(1)
+
+            // Set external address
+            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
+
+            const now = timestamp + 2 + 2_592_000
+            await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+            await ethers.provider.send('evm_mine', []);
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+        })
+    })
 });

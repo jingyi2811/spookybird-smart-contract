@@ -74,13 +74,13 @@ describe("Burn and mint zombie bird", function () {
             await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
 
             // Should get 1 zombie bird
-            expect(await SpookyBirdsCandyMock._addressBoughtZombieBirdQty(account1.address)).to.be.equal(1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(1)
 
             // Check if timestamp matched
             const blockNumBefore = await ethers.provider.getBlockNumber();
             const blockBefore = await ethers.provider.getBlock(blockNumBefore);
             const timestampBefore = blockBefore.timestamp;
-            expect(await SpookyBirdsCandyMock._addressBoughtTimestamp(account1.address)).to.be.equal(timestampBefore)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(timestampBefore)
 
             // Check if candry all burned
             expect(await SpookyBirdsCandyMock.connect(account1).balanceOf(account1.address)).to.be.equal(0)
@@ -92,21 +92,25 @@ describe("Burn and mint zombie bird", function () {
 
             // Try burn 4 candies
             await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
-
-            // Should get 1 zombie bird
-            expect(await SpookyBirdsCandyMock._addressBoughtZombieBirdQty(account1.address)).to.be.equal(1)
+            // Check if timestamp matched
+            const blockNumBefore1 = await ethers.provider.getBlockNumber();
+            const blockBefore1 = await ethers.provider.getBlock(blockNumBefore1);
+            const timestampBefore1 = blockBefore1.timestamp;
 
             // Try burn 4 candies again
             await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([4,5,6,7])
+            // Check if timestamp matched
+            const blockNumBefore2 = await ethers.provider.getBlockNumber();
+            const blockBefore2 = await ethers.provider.getBlock(blockNumBefore2);
+            const timestampBefore2 = blockBefore2.timestamp;
 
-            // Should get 1 zombie bird
-            expect(await SpookyBirdsCandyMock._addressBoughtZombieBirdQty(account1.address)).to.be.equal(2)
+            // Should get 2 zombie birds
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address,0)).to.be.equal(1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address,1)).to.be.equal(1)
 
             // Check if timestamp matched
-            const blockNumBefore = await ethers.provider.getBlockNumber();
-            const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-            const timestampBefore = blockBefore.timestamp;
-            expect(await SpookyBirdsCandyMock._addressBoughtTimestamp(account1.address)).to.be.equal(timestampBefore)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address,0)).to.be.equal(timestampBefore1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address,1)).to.be.equal(timestampBefore2)
 
             // Check if candry all burned
             expect(await SpookyBirdsCandyMock.connect(account1).balanceOf(account1.address)).to.be.equal(0)
@@ -144,77 +148,152 @@ describe("Burn and mint zombie bird", function () {
             // Admin mints 4 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
 
-            // Get timestamp
-            const blockNumBefore = await ethers.provider.getBlockNumber();
-            const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+            const timestamp = await ethers.provider.getBlockNumber();
+            const blockBefore = await ethers.provider.getBlock(timestamp);
             const timestampBefore = blockBefore.timestamp;
 
             // Try burn 4 candies
             await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
 
-            // Admin set external zombie bird contract
-            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(account1.address)
+            // Should get 1 zombie bird
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(1)
 
-            const now = timestampBefore + 2_591_999
+            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
+
+            const now = timestampBefore + 2 + 2_592_000 - 1
             await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
             await ethers.provider.send('evm_mine', []);
 
-            // Account1 try to mint zombie bird 2 blocks after minting
             expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
                 "ZombieNeedsMoreOrEqualTo30DaysToBeClaimed"
             )
         })
 
-        it("Should not able to mint if fail to mint in zombie contract", async function () {
+        it("Should able to mint if burn has taken 30 days", async function () {
             // Admin mints 4 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
 
-            // Get timestamp
-            const blockNumBefore = await ethers.provider.getBlockNumber();
-            const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-            const timestampBefore = blockBefore.timestamp;
+            // Should get 0 zombie bird, timestamp and times
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(0)
 
             // Try burn 4 candies
             await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
 
-            // Balance should equal to 0
-            expect(await SpookyBirdsCandyMock.connect(account1).balanceOf(account1.address)).to.be.equal(0)
+            const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
 
-            // Admin set external zombie bird contract
-            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMockFalse.address)
+            // Should get 1 zombie bird
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(timestamp)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(1)
 
-            const now = timestampBefore + 2_592_000
-            await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
-            await ethers.provider.send('evm_mine', []);
-
-           expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
-               SpookyBirdsCandyMock,
-               "UnableToMintZombieBird"
-           )
-        })
-
-        it("Should able to mint", async function () {
-            // Admin mints 4 candies to account 1
-            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
-
-            // Get timestamp
-            const blockNumBefore = await ethers.provider.getBlockNumber();
-            const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-            const timestampBefore = blockBefore.timestamp;
-
-            // Try burn 4 candies
-            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
-
-            // Balance should equal to 0
-            expect(await SpookyBirdsCandyMock.connect(account1).balanceOf(account1.address)).to.be.equal(0)
-
-            // Admin set external zombie bird contract
+            // Set external address
             await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
 
-            const now = timestampBefore + 2_592_000
+            const now = timestamp + 2 + 2_592_000
             await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
             await ethers.provider.send('evm_mine', []);
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+        })
+
+        it("Should able to mint if 2 burns which have taken 30 days", async function () {
+            // Admin mints 12 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 12)
+
+            // Should get 0 zombie bird, timestamp and times
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(0)
+
+            const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
+
+            {
+                const now = timestamp + 2 + 86_400
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
+
+            // Try burn 8 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([4,5,6,7,8,9,10,11])
+
+            {
+                const now = timestamp + 2 + 2_592_000
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
+
+            // Set external address
+            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            {
+                const now = timestamp + 2 + 2_592_000 + 86400
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+        })
+
+        it("Should able to mint if 3 burns which have taken 30 days", async function () {
+            // Admin mints 20 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 20)
+
+            // Get timestamp
+            const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
+
+            {
+                const now = timestamp + 2 + 86_400
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
+
+            // Try burn 8 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([4,5,6,7,8,9,10,11])
+
+            {
+                const now = timestamp + 2 + 86_400 + 86400
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
+
+            // Try burn 8 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([12,13,14,15,16,17,18,19])
+
+            {
+                const now = timestamp + 2 + 2_592_000
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
+
+            // Set external address
+            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            // {
+            //     const now = timestamp + 2 + 2_592_000 + 86400
+            //     await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+            //     await ethers.provider.send('evm_mine', []);
+            // }
+            //
+            // await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            {
+                const now = timestamp + 2 + 2_592_000 + 86400 + 86400
+                await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
+                await ethers.provider.send('evm_mine', []);
+            }
 
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
