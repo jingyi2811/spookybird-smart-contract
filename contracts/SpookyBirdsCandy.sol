@@ -230,7 +230,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if (length == 0) revert CandyQtyMustNotBe0();
         if (length % 4 != 0) revert CandyQtyMustBeInMutiplyOf4();
         if (length > balanceOf(msg.sender)) revert CandyQtyMustBeLessOrEqualToBalance();
-        _addressBoughtZombieBirdQty[msg.sender] = length / 4;
+        _addressBoughtZombieBirdQty[msg.sender] = _addressBoughtZombieBirdQty[msg.sender] + length / 4;
         _addressBoughtTimestamp[msg.sender] = block.timestamp;
 
         for (uint i = 0; i < tokenIds_.length;) {

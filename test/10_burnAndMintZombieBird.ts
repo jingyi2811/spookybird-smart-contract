@@ -66,7 +66,7 @@ describe("Burn and mint zombie bird", function () {
             );
         })
 
-        it("Should burn", async function () {
+        it("Should burn - #1", async function () {
             // Admin mints 4 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
 
@@ -75,6 +75,32 @@ describe("Burn and mint zombie bird", function () {
 
             // Should get 1 zombie bird
             expect(await SpookyBirdsCandyMock._addressBoughtZombieBirdQty(account1.address)).to.be.equal(1)
+
+            // Check if timestamp matched
+            const blockNumBefore = await ethers.provider.getBlockNumber();
+            const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+            const timestampBefore = blockBefore.timestamp;
+            expect(await SpookyBirdsCandyMock._addressBoughtTimestamp(account1.address)).to.be.equal(timestampBefore)
+
+            // Check if candry all burned
+            expect(await SpookyBirdsCandyMock.connect(account1).balanceOf(account1.address)).to.be.equal(0)
+        })
+
+        it("Should burn - #2", async function () {
+            // Admin mints 4 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 8)
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
+
+            // Should get 1 zombie bird
+            expect(await SpookyBirdsCandyMock._addressBoughtZombieBirdQty(account1.address)).to.be.equal(1)
+
+            // Try burn 4 candies again
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([4,5,6,7])
+
+            // Should get 1 zombie bird
+            expect(await SpookyBirdsCandyMock._addressBoughtZombieBirdQty(account1.address)).to.be.equal(2)
 
             // Check if timestamp matched
             const blockNumBefore = await ethers.provider.getBlockNumber();
