@@ -9,6 +9,12 @@ const config: HardhatUserConfig = {
     currency: 'USD',
     gasPrice: 21,
     coinmarketcap: '9369d435-ca90-48c9-a3d1-a7746552f6fa'
+  },
+  networks: {
+    rinkeby: {
+      url: "https://rinkeby.infura.io/v3/[infuraKey]",
+      accounts: ["[privatekey]"]
+    },
   }
 };
 
