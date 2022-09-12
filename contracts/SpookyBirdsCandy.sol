@@ -21,8 +21,8 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     enum Phase {
         NULL, // Either haven't start or have ended
         PRE_SALE,    // Stage 1
-        PUBLIC_SALE, // Stage 2
-        ZOMBIE_BIRD_SALE  // Stage 3
+        PUBLIC_MINT, // Stage 2
+        ZOMBIE_BIRD_MINT  // Stage 3
     }
 
     /**
@@ -66,7 +66,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     // Global errors
     error NotCorrectPhase();
     error TotalSupplyHasReached();
-    // Presale1 errors
+    // Presale errors
     error PreSaleClosed();
     error PurchasedEtherMustBeCorrect();
     error CannotPurchaseMoreThan1Time();
@@ -199,7 +199,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      * 2 - User claims his airdropped candy(s).
      */
 
-    function publicSaleAirDrop(address[] calldata addresses_, uint[] calldata qtys_) external onlyOwner phaseRequired(Phase.PUBLIC_SALE) {
+    function publicSaleAirDrop(address[] calldata addresses_, uint[] calldata qtys_) external onlyOwner phaseRequired(Phase.PUBLIC_MINT) {
         if (addresses_.length != qtys_.length) revert AddressesAndQtysLengthAreDifferent();
         for (uint i = 0; i < addresses_.length;) {
             _publicSaleAirDropAddressQty[addresses_[i]] = qtys_[i];
@@ -209,7 +209,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         }
     }
 
-    function publicMint(bytes32[] calldata proof_) external phaseRequired(Phase.PUBLIC_SALE) {
+    function publicMint(bytes32[] calldata proof_) external phaseRequired(Phase.PUBLIC_MINT) {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (_publicSaleAirDropAddressQty[msg.sender] == 0) revert NoPublicSaleAirdrop();
         uint airDropAddressQty = _publicSaleAirDropAddressQty[msg.sender]; // Save gas
@@ -229,7 +229,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      * 3 - User claims his bought zombie after 30 days.
      */
 
-    function burnCandyToMintZombieBird(uint[] calldata tokenIds_) external phaseRequired(Phase.ZOMBIE_BIRD_SALE) {
+    function burnCandyToMintZombieBird(uint[] calldata tokenIds_) external phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
         uint length = tokenIds_.length; // Save gas
         if (length == 0) revert CandyQtyMustNotBe0();
         if (length % 4 != 0) revert CandyQtyMustBeInMutiplyOf4();
@@ -239,7 +239,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         _addressZombieBirdBoughtQtys[msg.sender][times] = length / 4;
         _addressZombieBirdBoughtTimestamps[msg.sender][times] = block.timestamp;
         {
-        unchecked{++_addressZombieBirdBoughtTimes[msg.sender];}
+        unchecked{++_addressZombieBirdBoughtTimes[msg.sender];} // Save gas
         }
 
         for (uint i = 0; i < tokenIds_.length;) {
@@ -253,13 +253,13 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         emit ZombieSaleBurnCandy(msg.sender, block.timestamp, length);
     }
 
-    function setZombieBirdAddress(address address_) external onlyOwner phaseRequired(Phase.ZOMBIE_BIRD_SALE) {
+    function setZombieBirdAddress(address address_) external onlyOwner phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
         if (_hasZombieContractSet) revert ZombieAddressWasSetBefore();
         _zombieBirdContract = IZombieBirdContract(address_);
         _hasZombieContractSet = true;
     }
 
-    function mintZombieBird() external phaseRequired(Phase.ZOMBIE_BIRD_SALE) {
+    function mintZombieBird() external phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
         if (!_hasZombieContractSet) revert ZombieAddressWasNotYetSet();
         uint times = _addressZombieBirdBoughtTimes[msg.sender];
         uint addressBoughtZombieBirdQty = 0;
