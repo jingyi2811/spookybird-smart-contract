@@ -38,7 +38,6 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
 
     // Stage 2 - PUBLIC_SALE
     mapping(address => uint) public _publicSaleAirDropAddressQty;
-    mapping(address => bool) public _hasPublicSaleAddressClaimed;
 
     // Stage 3 - ZOMBIE_SALE
     IZombieBirdContract public _zombieBirdContract;
@@ -210,7 +209,6 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (_publicSaleAirDropAddressQty[msg.sender] == 0) revert NoPublicSaleAirdrop();
         uint airDropAddressQty = _publicSaleAirDropAddressQty[msg.sender]; // Save gas
-        _hasPublicSaleAddressClaimed[msg.sender] = true;
         _publicSaleAirDropAddressQty[msg.sender] = 0;
         _safeMint(msg.sender, airDropAddressQty);
         emit PublicSaleClaimAirdrop(msg.sender, block.timestamp, airDropAddressQty);

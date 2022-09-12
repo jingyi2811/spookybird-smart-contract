@@ -87,8 +87,6 @@ describe("Public sale", function () {
 
             // Qty should be 0
             expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(0)
-
-            expect(await SpookyBirdsCandyMock._hasPublicSaleAddressClaimed(account1.address)).to.be.true
             expect(await SpookyBirdsCandyMock.totalSupply()).to.be.equal(2)
             expect(await SpookyBirdsCandyMock.balanceOf(account1.address)).to.be.equal(2)
         })
