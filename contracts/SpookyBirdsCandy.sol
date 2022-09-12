@@ -71,7 +71,6 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     // Public sale errors
     error AddressesAndQtysLengthAreDifferent();
     error NoPublicSaleAirdrop();
-    error CannotClaimMoreThan1Time();
     error ZombieAddressWasSetBefore();
     error ZombieAddressWasNotYetSet();
     // Sell zombie errors
@@ -210,9 +209,9 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     function publicMint(bytes32[] calldata proof_) external phaseRequired(Phase.PUBLIC_SALE) {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (_publicSaleAirDropAddressQty[msg.sender] == 0) revert NoPublicSaleAirdrop();
-        if (_hasPublicSaleAddressClaimed[msg.sender]) revert CannotClaimMoreThan1Time();
         uint airDropAddressQty = _publicSaleAirDropAddressQty[msg.sender]; // Save gas
         _hasPublicSaleAddressClaimed[msg.sender] = true;
+        _publicSaleAirDropAddressQty[msg.sender] = 0;
         _safeMint(msg.sender, airDropAddressQty);
         emit PublicSaleClaimAirdrop(msg.sender, block.timestamp, airDropAddressQty);
     }

@@ -46,11 +46,6 @@ describe("MerkleRoot", function () {
             await SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)
         ).ok
 
-        // check error if claim again
-        await expect(
-             SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)
-        ).to.be.revertedWithCustomError(SpookyBirdsCandyMock, 'CannotClaimMoreThan1Time')
-
         expect(
             await SpookyBirdsCandyMock.connect(account2).publicMint(account2Proof)
         ).ok

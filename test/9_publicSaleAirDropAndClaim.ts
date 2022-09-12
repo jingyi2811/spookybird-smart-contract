@@ -54,22 +54,12 @@ describe("Public sale", function () {
 
     describe("Public mint",  function () {
         it("Should not allow public mint if there is no airdrop", async function () {
+            // Qty should be 0
+            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(0)
+
             await expect(SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
                 "NoPublicSaleAirdrop"
-            );
-        })
-
-        it("Should not allow public mint if user has public mint before", async function () {
-            // Airdrop
-            await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [1]))
-            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(1)
-
-            // Claim
-            await SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)
-            await expect(SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)).to.be.revertedWithCustomError(
-                SpookyBirdsCandyMock,
-                "CannotClaimMoreThan1Time"
             );
         })
 
@@ -88,10 +78,15 @@ describe("Public sale", function () {
         it("Should allow public mint", async function () {
             // Airdrop
             await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [2]))
+
+            // Qty should be 2
             expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(2)
 
             // Claim
             await SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)
+
+            // Qty should be 0
+            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(0)
 
             expect(await SpookyBirdsCandyMock._hasPublicSaleAddressClaimed(account1.address)).to.be.true
             expect(await SpookyBirdsCandyMock.totalSupply()).to.be.equal(2)
