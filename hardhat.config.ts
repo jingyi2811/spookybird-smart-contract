@@ -13,7 +13,7 @@ const config: HardhatUserConfig = {
   networks: {
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/[infuraKey]",
-      accounts: ["[privatekey]"]
+      accounts: ["[privateKey]"]
     },
   }
 };
