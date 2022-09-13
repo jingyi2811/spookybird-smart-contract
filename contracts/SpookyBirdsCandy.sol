@@ -222,7 +222,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
      * At 1736.29 usd/eth, 105.63 USD per call (May not be accurate)
      * Recommendation: Call this function with maximum 88 tokenIds (See 11_calculateGas.ts)
      *
-     * Customize functions - ZOMBIE_BIRD_SALE functions
+     * Customize functions - ZOMBIE_BIRD_MINT functions
      * 1 - User burns 4 candies to buy a zombie bird.
      * 2 - Admin need to set zombie bird address (Only can set once).
      * 3 - User claims his bought zombie bird after 30 days.
