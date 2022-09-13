@@ -39,7 +39,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
     mapping(address => bool) public _hasPresaleAddressSold;
 
     // Stage 2 - PUBLIC_MINT
-    mapping(address => uint) public _publicSaleAirDropAddressQty;
+    mapping(address => uint) public _publicMintAirDropAddressQty;
 
     // Stage 3 - ZOMBIE_BIRD_MINT
     IZombieBirdContract public _zombieBirdContract;
@@ -54,7 +54,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
      */
 
     event PreSaleMint(address indexed to, uint indexed timestamp);
-    event PublicSaleClaimAirdrop(address indexed to, uint indexed timestamp, uint qty);
+    event PublicMintClaimAirdrop(address indexed to, uint indexed timestamp, uint qty);
     event ZombieBirdSaleBurnCandyTokenId(address indexed to, uint indexed timestamp, uint tokenId);
     event ZombieBirdSaleBurnCandy(address indexed to, uint indexed timestamp, uint qty);
     event ZombieBirdClaimed(address indexed to, uint indexed timestamp, uint qty);
@@ -73,7 +73,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
     error CannotPurchaseMoreThan1Time();
     // Public mint errors
     error AddressesAndQtysLengthAreDifferent();
-    error NoPublicSaleAirdrop();
+    error NoPublicMintAirdrop();
     // Zombie mint errors
     error CandyQtyMustNotBe0();
     error CandyQtyMustBeInMutiplyOf4();
@@ -196,12 +196,12 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
      * 2 - User claims his airdropped candy(s). (Could be more than 1 time)
      */
 
-    function publicSaleAirDrop(address[] calldata addresses_, uint[] calldata qtys_) external onlyOwner phaseRequired(Phase.PUBLIC_MINT) {
+    function publicMintAirDrop(address[] calldata addresses_, uint[] calldata qtys_) external onlyOwner phaseRequired(Phase.PUBLIC_MINT) {
         uint addressLength = addresses_.length; // Save gas
 
         if (addressLength != qtys_.length) revert AddressesAndQtysLengthAreDifferent();
         for (uint i = 0; i < addressLength;) {
-            _publicSaleAirDropAddressQty[addresses_[i]] = qtys_[i];
+            _publicMintAirDropAddressQty[addresses_[i]] = qtys_[i];
             {
             unchecked{++i;} // Save gas
             }
@@ -210,11 +210,11 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
 
     function publicMint(bytes32[] calldata proof_) external phaseRequired(Phase.PUBLIC_MINT) {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
-        if (_publicSaleAirDropAddressQty[msg.sender] == 0) revert NoPublicSaleAirdrop();
-        uint airDropAddressQty = _publicSaleAirDropAddressQty[msg.sender]; // Save gas
-        _publicSaleAirDropAddressQty[msg.sender] = 0;
+        if (_publicMintAirDropAddressQty[msg.sender] == 0) revert NoPublicMintAirdrop();
+        uint airDropAddressQty = _publicMintAirDropAddressQty[msg.sender]; // Save gas
+        _publicMintAirDropAddressQty[msg.sender] = 0;
         _safeMint(msg.sender, airDropAddressQty);
-        emit PublicSaleClaimAirdrop(msg.sender, block.timestamp, airDropAddressQty);
+        emit PublicMintClaimAirdrop(msg.sender, block.timestamp, airDropAddressQty);
     }
 
     /**

@@ -37,7 +37,7 @@ describe("MerkleRoot", function () {
         await SpookyBirdsCandyMock.setPhase(2, tree.getHexRoot());
 
         // allocation for later test case to claim
-        await SpookyBirdsCandyMock.publicSaleAirDrop([account1.address, account2.address], [4, 4]);
+        await SpookyBirdsCandyMock.publicMintAirDrop([account1.address, account2.address], [4, 4]);
     });
 
     it("Should be valid proof", async function () {

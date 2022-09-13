@@ -40,7 +40,7 @@ describe("Calculate gas", function () {
         it("Should airdrop", async function () {
             await SpookyBirdsCandyMock.connect(admin).setPhase(2, ethers.utils.formatBytes32String(""));
 
-            await SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([
+            await SpookyBirdsCandyMock.connect(admin).publicMintAirDrop([
                addressArr[0].address,
                addressArr[1].address,
                addressArr[2].address,

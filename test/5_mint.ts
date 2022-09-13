@@ -36,7 +36,7 @@ describe("Mint", function () {
         await SpookyBirdsCandyMock.setPhase(2, tree.getHexRoot());
 
         // allocation for later test case to fill the total supply
-        await SpookyBirdsCandyMock.publicSaleAirDrop([account1.address, account2.address], [4_887, 4_887]);
+        await SpookyBirdsCandyMock.publicMintAirDrop([account1.address, account2.address], [4_887, 4_887]);
 
         // claim from account1 and account2 to make the total supply balance = 2
         await SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)

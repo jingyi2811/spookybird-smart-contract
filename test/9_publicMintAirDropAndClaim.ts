@@ -40,33 +40,33 @@ describe("Public sale", function () {
 
     describe("Airdrop",  function () {
         it("Should not airdrop when address and qty length are different", async function () {
-            await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [])).to.be.revertedWithCustomError(
+            await expect(SpookyBirdsCandyMock.connect(admin).publicMintAirDrop([account1.address], [])).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
                 "AddressesAndQtysLengthAreDifferent"
             );
         })
 
         it("Should airdrop", async function () {
-            await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [1]))
-            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(1)
+            await expect(SpookyBirdsCandyMock.connect(admin).publicMintAirDrop([account1.address], [1]))
+            expect(await SpookyBirdsCandyMock._publicMintAirDropAddressQty(account1.address)).to.be.equal(1)
         })
     });
 
     describe("Public mint",  function () {
         it("Should not allow public mint if there is no airdrop", async function () {
             // Qty should be 0
-            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._publicMintAirDropAddressQty(account1.address)).to.be.equal(0)
 
             await expect(SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoPublicSaleAirdrop"
+                "NoPublicMintAirdrop"
             );
         })
 
         it("Should not allow public mint if user is not a whitelisted address", async function () {
             // Airdrop
-            await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [1]))
-            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(1)
+            await expect(SpookyBirdsCandyMock.connect(admin).publicMintAirDrop([account1.address], [1]))
+            expect(await SpookyBirdsCandyMock._publicMintAirDropAddressQty(account1.address)).to.be.equal(1)
 
             // Claim
             await expect(SpookyBirdsCandyMock.connect(account1).publicMint(account2Proof)).to.be.revertedWithCustomError(
@@ -77,16 +77,16 @@ describe("Public sale", function () {
 
         it("Should allow public mint", async function () {
             // Airdrop
-            await expect(SpookyBirdsCandyMock.connect(admin).publicSaleAirDrop([account1.address], [2]))
+            await expect(SpookyBirdsCandyMock.connect(admin).publicMintAirDrop([account1.address], [2]))
 
             // Qty should be 2
-            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(2)
+            expect(await SpookyBirdsCandyMock._publicMintAirDropAddressQty(account1.address)).to.be.equal(2)
 
             // Claim
             await SpookyBirdsCandyMock.connect(account1).publicMint(account1Proof)
 
             // Qty should be 0
-            expect(await SpookyBirdsCandyMock._publicSaleAirDropAddressQty(account1.address)).to.be.equal(0)
+            expect(await SpookyBirdsCandyMock._publicMintAirDropAddressQty(account1.address)).to.be.equal(0)
             expect(await SpookyBirdsCandyMock.totalSupply()).to.be.equal(2)
             expect(await SpookyBirdsCandyMock.balanceOf(account1.address)).to.be.equal(2)
         })
