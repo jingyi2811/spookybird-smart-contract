@@ -161,8 +161,8 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
     }
 
     /**
-     * 154_500 Gas unit per function call
-     * At 1619.64 usd/eth, 5.25 USD per call (May not be accurate)
+     * 154_312 Gas unit per function call
+     * At 1584.25 usd/eth, 5.13 USD per call (May not be accurate)
      *
      * Customize functions - PRE_SALE functions
      * 1 - Allow 222 different whitelisted addresses to buy candy.
@@ -177,7 +177,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
         if (msg.value != 0.276 ether) revert PurchasedEtherMustBeCorrect();
         if (_hasPresaleAddressSold[msg.sender]) revert CannotPurchaseMoreThan1Time();
         {
-        _presaleMintQty = _presaleMintQty + 4; // Save gas
+            unchecked{_presaleMintQty = _presaleMintQty + 4;} // Save gas
         }
         _hasPresaleAddressSold[msg.sender] = true;
         _safeMint(msg.sender, 4);
