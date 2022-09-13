@@ -2,6 +2,7 @@ import {ethers} from "hardhat";
 import {expect} from "chai";
 import keccak256 from "keccak256";
 import {MerkleTree} from "merkletreejs";
+const helpers = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("Burn and mint zombie bird", function () {
     let admin: any
@@ -166,7 +167,7 @@ describe("Burn and mint zombie bird", function () {
 
             expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "ZombieNeedsMoreOrEqualTo30DaysToBeClaimed"
+                "NoZombieCanBeClaimed"
             )
         })
 
@@ -242,7 +243,7 @@ describe("Burn and mint zombie bird", function () {
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
 
-        it("Should able to mint if 3 burns which have taken 30 days", async function () {
+        it("Should able to mint if 3 burns which have taken 32 days", async function () {
             // Admin mints 20 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 20)
 
@@ -281,14 +282,6 @@ describe("Burn and mint zombie bird", function () {
 
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
 
-            // {
-            //     const now = timestamp + 2 + 2_592_000 + 86400
-            //     await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
-            //     await ethers.provider.send('evm_mine', []);
-            // }
-            //
-            // await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
-
             {
                 const now = timestamp + 2 + 2_592_000 + 86400 + 86400
                 await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
@@ -296,6 +289,154 @@ describe("Burn and mint zombie bird", function () {
             }
 
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+        })
+
+        it.only("Should able to mint if 5 burns which have taken 90 days", async function () {
+            // Admin mints 20 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 24)
+
+            // Get timestamp
+            const timestamp = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
+
+            // Wait for 1 day
+            const now1 = timestamp + 86400 * 1
+            await helpers.time.increaseTo(now1);
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0,1,2,3])
+
+            // Wait for 2 more days
+            const now2 = timestamp + 86400 * 3
+            await helpers.time.increaseTo(now2);
+
+            // Try burn 8 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([4,5,6,7,8,9,10,11])
+
+            // Wait for 5 more days
+            const now3 = timestamp + 86400 * 5
+            await helpers.time.increaseTo(now3);
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([20,21,23,22])
+
+            // Wait for 5 more days
+            const now4 = timestamp + 86400 * 10
+            await helpers.time.increaseTo(now4);
+
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([12,14,15,13])
+
+
+            // Check statuses
+            // Total times = 4
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(4)
+
+            // Bought qty => 1, 2, 1, 1
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 1)).to.be.equal(2)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 2)).to.be.equal(1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 3)).to.be.equal(1)
+
+            // Check timestamp
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(now1+1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 1)).to.be.equal(now2+1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 2)).to.be.equal(now3+1)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 3)).to.be.equal(now4+1)
+
+            // Check hasDistributed, all should be false
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 0)).to.be.equal(false)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 1)).to.be.equal(false)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 2)).to.be.equal(false)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 3)).to.be.equal(false)
+
+            // Wait for 30 days
+            {
+                const time = timestamp + 86400 * 30
+                await helpers.time.increaseTo(time);
+            }
+
+            // Set external address
+            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
+
+            // Try to mint at 30th day, should fail
+            await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "NoZombieCanBeClaimed"
+            );
+
+            // Wait for 1 more day
+            {
+                const time = timestamp + 86400 * 31
+                await helpers.time.increaseTo(time);
+            }
+
+            // Mint at 31th day
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            // Should be distributed
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 0)).to.be.equal(true)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 1)).to.be.equal(false)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 2)).to.be.equal(false)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 3)).to.be.equal(false)
+
+            // Try to mint on the same day again. Should fail.
+            await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "NoZombieCanBeClaimed"
+            )
+
+            // Wait for 1 more day
+            {
+                const time = timestamp + 86400 * 32
+                await helpers.time.increaseTo(time);
+            }
+
+            // Try to mint on the same day again. Should fail.
+            await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "NoZombieCanBeClaimed"
+            )
+
+            // Wait for 1 more day
+            {
+                const time = timestamp + 86400 * 33
+                await helpers.time.increaseTo(time);
+            }
+
+            // Should mint
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            // Should be distributed
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 0)).to.be.equal(true)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 1)).to.be.equal(true)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 2)).to.be.equal(false)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 3)).to.be.equal(false)
+
+            // Wait for 1 more day
+            {
+                const time = timestamp + 86400 * 34
+                await helpers.time.increaseTo(time);
+            }
+
+            // Try to mint on the same day again. Should fail.
+            await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "NoZombieCanBeClaimed"
+            )
+
+            // Wait for 10 more day
+            {
+                const time = timestamp + 86400 * 44
+                await helpers.time.increaseTo(time);
+            }
+
+            // Should mint
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            // Should be distributed
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 0)).to.be.equal(true)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 1)).to.be.equal(true)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 2)).to.be.equal(true)
+            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 3)).to.be.equal(true)
         })
     });
 });
