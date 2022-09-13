@@ -306,8 +306,8 @@ describe("Calculate gas", function () {
         it("Should burn", async function () {
             await SpookyBirdsCandyMock.connect(admin).setPhase(3, ethers.utils.formatBytes32String(""));
 
-            // Admin mints 4 candies to account 1
-            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
+            // Admin mints 150 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 150)
 
             // Should get 0 zombie bird, timestamp and times
             expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(0)
@@ -315,14 +315,98 @@ describe("Calculate gas", function () {
             expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(0)
 
             // Try burn 4 candies
-            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([0, 1, 2, 3])
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+                52,
+                53,
+                54,
+                55,
+                56,
+                57,
+                58,
+                59,
+                60,
+                61,
+                62,
+                63,
+                64,
+                65,
+                66,
+                67,
+                68,
+                69,
+                70,
+                71,
+                72,
+                73,
+                74,
+                75,
+                76,
+                77,
+                78,
+                79,
+                80,
+                81,
+                82,
+                83,
+                84,
+                85,
+                86,
+                87,
+            ])
 
             const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
-
-            // Should get 1 zombie bird
-            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtQtys(account1.address, 0)).to.be.equal(1)
-            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimestamps(account1.address, 0)).to.be.equal(timestamp)
-            expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtTimes(account1.address)).to.be.equal(1)
 
             // Set external address
             await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)

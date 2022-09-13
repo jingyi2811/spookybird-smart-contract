@@ -7,14 +7,15 @@ const helpers = require("@nomicfoundation/hardhat-network-helpers");
 describe("Burn and mint zombie bird", function () {
     let admin: any
     let account1: any
+    let account2: any
     let SpookyBirdsCandyMock: any
     let ZombieBirdFactoryMock: any
     let ZombieBirdFactoryMockFalse: any
 
     beforeEach(async function () {
-        [admin, account1] = await ethers.getSigners();
+        [admin, account1, account2] = await ethers.getSigners();
 
-        const addresses = [admin.address, account1.address];
+        const addresses = [admin.address, account1.address, account2.address];
         const leaves = addresses.map(x => keccak256(x))
         const tree = new MerkleTree(leaves, keccak256, { sortPairs: true })
 
@@ -169,6 +170,26 @@ describe("Burn and mint zombie bird", function () {
                 SpookyBirdsCandyMock,
                 "NoZombieCanBeClaimed"
             )
+        })
+
+        it("Should not be able to burn if not tokenid", async function () {
+            // Admin mints 4 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
+
+            // Admin mints 4 candies to account 2
+            await SpookyBirdsCandyMock.connect(admin).mint(account2.address, 4)
+
+            // Should fail if burn 0,1,2,3 by account 2
+            await expect(SpookyBirdsCandyMock.connect(account2).burnCandyToMintZombieBird([0,1,2,3])).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "IsNotCandyOwner"
+            );
+
+            // Should fail if burn 4,5,6,7 by account 1
+            await expect(SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([4,5,6,7])).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "IsNotCandyOwner"
+            );
         })
 
         it("Should able to mint if burn has taken 30 days", async function () {

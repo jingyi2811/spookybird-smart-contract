@@ -197,7 +197,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      * At 1716.11 usd/eth, 107.79 USD per call
      * 8_888 Airdrop = 8_888 / 128 = 69.4375 which is at least 70 times
      * Recommendation: Call this function 70 times, every time 128 addresses
-     * Estimate total cost: 70 * 107.79 = 7545.3 USD for 8888 airdrops (May not be accurate)
+     * Estimate total cost: 70 * 107.79 = 7545.3 USD for 8888 airdrops (May not be accurate)  (See 11_calculateGas.ts)
      *
      * Customize functions - PUBLIC_MINT functions
      * 1 - Admin airdrops candy(s) to different whitelisted addresses. (Could be more than 1 time)
@@ -226,9 +226,9 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
-     * 232_827 Gas unit per function call
-     * At 1_731.38 usd/eth, 8.47 USD per call
-     * Recommendation: Call this function with maximum 142 tokenIds, with 128 * 232_827 = 29_801_856 (May not be accurate)
+     * 2_901_091 Gas unit per function call by passing in maximum 88 tokenIds
+     * At 1728.13 usd/eth, 105.28 USD per call (May not be accurate)
+     * Recommendation: Call this function with maximum 88 tokenIds (See 11_calculateGas.ts)
      *
      * Customize functions - ZOMBIE_BIRD_SALE functions
      * 1 - User burns 4 candies to buy a zombie.
@@ -250,12 +250,13 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         }
 
         for (uint i = 0; i < length;) {
+            uint tokenId = tokenIds_[i]; // Save gas
             if(ownerOf(tokenIds_[i]) == msg.sender){
-                _burn(tokenIds_[i]);
+                _burn(tokenId);
             } else {
                 revert IsNotCandyOwner();
             }
-            emit ZombieSaleBurnCandyTokenId(msg.sender, block.timestamp, tokenIds_[i]);
+            emit ZombieSaleBurnCandyTokenId(msg.sender, block.timestamp, tokenId);
             {
             unchecked{++i;} // Save gas
             }
