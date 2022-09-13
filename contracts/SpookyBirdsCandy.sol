@@ -19,7 +19,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      */
 
     enum Phase {
-        NULL, // Either haven't start or have ended
+        NULL, // Either haven't start or have ended (DEFAULT VALUE)
         PRE_SALE,    // Stage 1
         PUBLIC_MINT, // Stage 2
         ZOMBIE_BIRD_MINT  // Stage 3
@@ -38,10 +38,10 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     uint public _presaleMintQty;
     mapping(address => bool) public _hasPresaleAddressSold;
 
-    // Stage 2 - PUBLIC_SALE
+    // Stage 2 - PUBLIC_MINT
     mapping(address => uint) public _publicSaleAirDropAddressQty;
 
-    // Stage 3 - ZOMBIE_SALE
+    // Stage 3 - ZOMBIE_BIRD_MINT
     IZombieBirdContract public _zombieBirdContract;
     bool public _hasZombieContractSet;
     mapping(address => uint) public _addressZombieBirdBoughtTimes;
@@ -53,11 +53,11 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
      * Events
      */
 
-    event PreSaleMint(address indexed _from, uint indexed timestamp);
-    event PublicSaleClaimAirdrop(address indexed _from, uint indexed timestamp, uint qty);
-    event ZombieSaleBurnCandyTokenId(address indexed _from, uint indexed timestamp, uint tokenId);
-    event ZombieSaleBurnCandy(address indexed _from, uint indexed timestamp, uint qty);
-    event ZombieClaimed(address indexed _from, uint indexed claimedTimestamp, uint qty);
+    event PreSaleMint(address indexed to, uint indexed timestamp);
+    event PublicSaleClaimAirdrop(address indexed to, uint indexed timestamp, uint qty);
+    event ZombieSaleBurnCandyTokenId(address indexed to, uint indexed timestamp, uint tokenId);
+    event ZombieSaleBurnCandy(address indexed to, uint indexed timestamp, uint qty);
+    event ZombieClaimed(address indexed to, uint indexed timestamp, uint qty);
 
     /**
      * Errors
@@ -66,22 +66,22 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     // Global errors
     error NotCorrectPhase();
     error TotalSupplyHasReached();
+    error NotAWhitelistedAddress();
     // Presale errors
-    error PreSaleClosed();
+    error PreSaleQtyHasReached();
     error PurchasedEtherMustBeCorrect();
     error CannotPurchaseMoreThan1Time();
-    error NotAWhitelistedAddress();
-    // Public sale errors
+    // Public mint errors
     error AddressesAndQtysLengthAreDifferent();
     error NoPublicSaleAirdrop();
-    error ZombieAddressWasSetBefore();
-    error ZombieAddressWasNotYetSet();
-    // Sell zombie errors
+    // Zombie mint errors
     error CandyQtyMustNotBe0();
     error CandyQtyMustBeInMutiplyOf4();
     error CandyQtyMustBeLessOrEqualToBalance();
+    error ZombieAddressWasSetBefore();
+    error ZombieAddressWasNotYetSet();
     error NoZombieCanBeClaimed();
-    error UnableToMintZombieBird();
+    error UnableToMintZombie();
 
     /**
      * Constructor
@@ -154,7 +154,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
 
     /**
      * 63_728 Gas unit per function call
-     * At 1)773.69 usd/eth,  2.37 USD per call
+     * At 1773.69 usd/eth,  2.37 USD per call
      */
 
     function burn(uint256 tokenId) external onlyOwner {
@@ -165,9 +165,13 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         payable(owner()).transfer(address(this).balance);
     }
 
+    function getCurrentBlockTimestamp() external view returns (uint) {
+        return block.timestamp;
+    }
+
     /**
-     * 155_017 Gas unit per function call
-     * At 1_762.05 usd/eth, 5.74 USD per call
+     * 154_995 Gas unit per function call
+     * At 1_708.75 usd/eth, 5.56 USD per call (May not be accurate)
      *
      * Customize functions - PRE_SALE functions
      * 1 - Allow 222 different whitelisted addresses to buy candy.
@@ -178,7 +182,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if (!MerkleProof.verify(proof_, _currentMerkleRoot, keccak256(abi.encodePacked(msg.sender)))) revert NotAWhitelistedAddress();
         if (totalSupply() >= MAX_SUPPLY) revert TotalSupplyHasReached();
         // While testing, comment the next line and use this line => if (_presaleMintQty >= 4) revert PreSaleClosed();
-        if (_presaleMintQty >= 888) revert PreSaleClosed();
+        if (_presaleMintQty >= 888) revert PreSaleQtyHasReached();
         if (msg.value != 0.276 ether) revert PurchasedEtherMustBeCorrect();
         if (_hasPresaleAddressSold[msg.sender]) revert CannotPurchaseMoreThan1Time();
         _presaleMintQty = _presaleMintQty + 4;
@@ -188,20 +192,22 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
-     * 2_992_042 Gas unit per function call by passing 128 addresses
-     * At 1772.01 usd/eth, 111.34 USD per call
+     * 2_990_989 Gas unit per function call by passing in 128 addresses
+     * At 1716.11 usd/eth, 107.79 USD per call
      * 8_888 Airdrop = 8_888 / 128 = 69.4375 which is at least 70 times
      * Recommendation: Call this function 70 times, every time 128 addresses
-     * Estimate total cost: 70 * 111.34 = 7793.8 USD for 8888 airdrop  (May not be accurate)
+     * Estimate total cost: 70 * 107.79 = 7545.3 USD for 8888 airdrops (May not be accurate)
      *
-     * Customize functions - PUBLIC_SALE functions
-     * 1 - Admin airdrops candy(s) to different whitelisted addresses.
-     * 2 - User claims his airdropped candy(s).
+     * Customize functions - PUBLIC_MINT functions
+     * 1 - Admin airdrops candy(s) to different whitelisted addresses. (Could be more than 1 time)
+     * 2 - User claims his airdropped candy(s). (Could be more than 1 time)
      */
 
     function publicSaleAirDrop(address[] calldata addresses_, uint[] calldata qtys_) external onlyOwner phaseRequired(Phase.PUBLIC_MINT) {
-        if (addresses_.length != qtys_.length) revert AddressesAndQtysLengthAreDifferent();
-        for (uint i = 0; i < addresses_.length;) {
+        uint addressLength = addresses_.length; // Save gas
+
+        if (addressLength != qtys_.length) revert AddressesAndQtysLengthAreDifferent();
+        for (uint i = 0; i < addressLength;) {
             _publicSaleAirDropAddressQty[addresses_[i]] = qtys_[i];
             {
             unchecked{++i;} // Save gas
@@ -278,11 +284,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         if(addressBoughtZombieBirdQty == 0) revert NoZombieCanBeClaimed(); // Need more or equal to 30 days
         //console.log("Qty minted", addressBoughtZombieBirdQty);
         bool canMint = _zombieBirdContract.mint(msg.sender, addressBoughtZombieBirdQty);
-        if (!canMint) revert UnableToMintZombieBird();
+        if (!canMint) revert UnableToMintZombie();
         emit ZombieClaimed(msg.sender, block.timestamp, addressBoughtZombieBirdQty);
-    }
-
-    function getCurrentBlockTimestamp() external view returns (uint) {
-        return block.timestamp;
     }
 }

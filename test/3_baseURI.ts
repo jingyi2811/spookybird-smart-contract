@@ -18,14 +18,8 @@ describe("BaseUrl", function () {
 
     describe("SET BASE_URL", function () {
         it("Should able to set base url", async function () {
-            expect(
-                await SpookyBirdsCandyMock.setBaseURI("http://ggwp.co")
-            ).ok;
-
-            // no checking on setting same URL
-            expect(
-                await SpookyBirdsCandyMock.setBaseURI("http://ggwp.co")
-            ).ok;
+            await SpookyBirdsCandyMock.setBaseURI("http://ggwp.co")
+            await SpookyBirdsCandyMock.setBaseURI("http://ggwp.co")
         })
 
         it('Should not set the base url - NOT OWNER', async function () {
