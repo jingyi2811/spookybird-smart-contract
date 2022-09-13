@@ -251,7 +251,7 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
 
         for (uint i = 0; i < length;) {
             uint tokenId = tokenIds_[i]; // Save gas
-            if(ownerOf(tokenIds_[i]) == msg.sender){
+            if(ownerOf(tokenId) == msg.sender){
                 _burn(tokenId);
             } else {
                 revert IsNotCandyOwner();
