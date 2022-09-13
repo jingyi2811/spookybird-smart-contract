@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.9;
 
-import "erc721a/contracts/ERC721A.sol";
+import "erc721a/contracts/extensions/ERC721AQueryable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
@@ -12,7 +12,7 @@ interface IZombieBirdContract {
     function mint(address to, uint qty) external returns (bool);
 }
 
-contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
+contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
 
     /**
      * Enums
@@ -143,20 +143,10 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         _currentMerkleRoot = currentMerkleRoot_;
     }
 
-    /**
-     * 99_076 Gas unit per IF MINT 1 tokenid
-     * At 1773.94 usd/eth,  3.69 USD per call TO MINT 1 tokenid
-     */
-
     function mint(address to, uint256 qty) external onlyOwner {
         if ((totalSupply() + qty) > MAX_SUPPLY) revert TotalSupplyHasReached();
         _safeMint(to, qty);
     }
-
-    /**
-     * 63_728 Gas unit per function call
-     * At 1773.69 usd/eth,  2.37 USD per call
-     */
 
     function burn(uint256 tokenId) external onlyOwner {
         _burn(tokenId);
@@ -226,8 +216,8 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
     }
 
     /**
-     * 2_901_091 Gas unit per function call by passing in maximum 88 tokenIds
-     * At 1728.13 usd/eth, 105.28 USD per call (May not be accurate)
+     * 2_896_867 Gas unit per function call by passing in maximum 88 tokenIds
+     * At 1732.22 usd/eth, 105.38 USD per call (May not be accurate)
      * Recommendation: Call this function with maximum 88 tokenIds (See 11_calculateGas.ts)
      *
      * Customize functions - ZOMBIE_BIRD_SALE functions
