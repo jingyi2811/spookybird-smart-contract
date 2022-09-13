@@ -43,7 +43,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
 
     // Stage 3 - ZOMBIE_BIRD_MINT
     IZombieBirdContract public _zombieBirdContract;
-    bool public _hasZombieContractSet;
+    bool public _hasZombieBirdContractSet;
     mapping(address => uint) public _addressZombieBirdBoughtTimes;
     mapping(address => mapping(uint => uint)) public _addressZombieBirdBoughtQtys;
     mapping(address => mapping(uint => uint)) public _addressZombieBirdBoughtTimestamps;
@@ -55,9 +55,9 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
 
     event PreSaleMint(address indexed to, uint indexed timestamp);
     event PublicSaleClaimAirdrop(address indexed to, uint indexed timestamp, uint qty);
-    event ZombieSaleBurnCandyTokenId(address indexed to, uint indexed timestamp, uint tokenId);
-    event ZombieSaleBurnCandy(address indexed to, uint indexed timestamp, uint qty);
-    event ZombieClaimed(address indexed to, uint indexed timestamp, uint qty);
+    event ZombieBirdSaleBurnCandyTokenId(address indexed to, uint indexed timestamp, uint tokenId);
+    event ZombieBirdSaleBurnCandy(address indexed to, uint indexed timestamp, uint qty);
+    event ZombieBirdClaimed(address indexed to, uint indexed timestamp, uint qty);
 
     /**
      * Errors
@@ -79,10 +79,10 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
     error CandyQtyMustBeInMutiplyOf4();
     error CandyQtyMustBeLessOrEqualToBalance();
     error IsNotCandyOwner();
-    error ZombieAddressWasSetBefore();
-    error ZombieAddressWasNotYetSet();
-    error NoZombieCanBeClaimed();
-    error UnableToMintZombie();
+    error ZombieBirdAddressWasSetBefore();
+    error ZombieBirdAddressWasNotYetSet();
+    error NoZombieBirdCanBeClaimed();
+    error UnableToMintZombieBird();
 
     /**
      * Constructor
@@ -161,8 +161,8 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
     }
 
     /**
-     * 154_995 Gas unit per function call
-     * At 1_708.75 usd/eth, 5.56 USD per call (May not be accurate)
+     * 154_500 Gas unit per function call
+     * At 1619.64 usd/eth, 5.25 USD per call (May not be accurate)
      *
      * Customize functions - PRE_SALE functions
      * 1 - Allow 222 different whitelisted addresses to buy candy.
@@ -176,7 +176,9 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
         if (_presaleMintQty >= 888) revert PreSaleQtyHasReached();
         if (msg.value != 0.276 ether) revert PurchasedEtherMustBeCorrect();
         if (_hasPresaleAddressSold[msg.sender]) revert CannotPurchaseMoreThan1Time();
-        _presaleMintQty = _presaleMintQty + 4;
+        {
+        _presaleMintQty = _presaleMintQty + 4; // Save gas
+        }
         _hasPresaleAddressSold[msg.sender] = true;
         _safeMint(msg.sender, 4);
         emit PreSaleMint(msg.sender, block.timestamp);
@@ -221,9 +223,9 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
      * Recommendation: Call this function with maximum 88 tokenIds (See 11_calculateGas.ts)
      *
      * Customize functions - ZOMBIE_BIRD_SALE functions
-     * 1 - User burns 4 candies to buy a zombie.
+     * 1 - User burns 4 candies to buy a zombie bird.
      * 2 - Admin need to set zombie bird address (Only can set once).
-     * 3 - User claims his bought zombie after 30 days.
+     * 3 - User claims his bought zombie bird after 30 days.
      */
 
     function burnCandyToMintZombieBird(uint[] calldata tokenIds_) external phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
@@ -246,23 +248,23 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
             } else {
                 revert IsNotCandyOwner();
             }
-            emit ZombieSaleBurnCandyTokenId(msg.sender, block.timestamp, tokenId);
+            emit ZombieBirdSaleBurnCandyTokenId(msg.sender, block.timestamp, tokenId);
             {
             unchecked{++i;} // Save gas
             }
         }
 
-        emit ZombieSaleBurnCandy(msg.sender, block.timestamp, length);
+        emit ZombieBirdSaleBurnCandy(msg.sender, block.timestamp, length);
     }
 
     function setZombieBirdAddress(address address_) external onlyOwner phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
-        if (_hasZombieContractSet) revert ZombieAddressWasSetBefore();
+        if (_hasZombieBirdContractSet) revert ZombieBirdAddressWasSetBefore();
         _zombieBirdContract = IZombieBirdContract(address_);
-        _hasZombieContractSet = true;
+        _hasZombieBirdContractSet = true;
     }
 
     function mintZombieBird() external phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
-        if (!_hasZombieContractSet) revert ZombieAddressWasNotYetSet();
+        if (!_hasZombieBirdContractSet) revert ZombieBirdAddressWasNotYetSet();
         uint times = _addressZombieBirdBoughtTimes[msg.sender];
         uint addressBoughtZombieBirdQty = 0;
 
@@ -277,10 +279,10 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
             }
         }
 
-        if(addressBoughtZombieBirdQty == 0) revert NoZombieCanBeClaimed(); // Need more or equal to 30 days
+        if(addressBoughtZombieBirdQty == 0) revert NoZombieBirdCanBeClaimed(); // Need more or equal to 30 days
         //console.log("Qty minted", addressBoughtZombieBirdQty);
         bool canMint = _zombieBirdContract.mint(msg.sender, addressBoughtZombieBirdQty);
-        if (!canMint) revert UnableToMintZombie();
-        emit ZombieClaimed(msg.sender, block.timestamp, addressBoughtZombieBirdQty);
+        if (!canMint) revert UnableToMintZombieBird();
+        emit ZombieBirdClaimed(msg.sender, block.timestamp, addressBoughtZombieBirdQty);
     }
 }

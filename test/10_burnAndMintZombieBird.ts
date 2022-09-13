@@ -129,7 +129,7 @@ describe("Burn and mint zombie bird", function () {
 
             await expect(SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(account1.address)).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "ZombieAddressWasSetBefore"
+                "ZombieBirdAddressWasSetBefore"
             )
         })
 
@@ -142,7 +142,7 @@ describe("Burn and mint zombie bird", function () {
         it("Should not be able to mint if external zombie bird contract was not set", async function () {
             expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "ZombieAddressWasNotYetSet"
+                "ZombieBirdAddressWasNotYetSet"
             )
         })
 
@@ -168,7 +168,7 @@ describe("Burn and mint zombie bird", function () {
 
             expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoZombieCanBeClaimed"
+                "NoZombieBirdCanBeClaimed"
             )
         })
 
@@ -381,7 +381,7 @@ describe("Burn and mint zombie bird", function () {
             // Try to mint at 30th day, should fail
             await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoZombieCanBeClaimed"
+                "NoZombieBirdCanBeClaimed"
             );
 
             // Wait for 1 more day
@@ -402,7 +402,7 @@ describe("Burn and mint zombie bird", function () {
             // Try to mint on the same day again. Should fail.
             await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoZombieCanBeClaimed"
+                "NoZombieBirdCanBeClaimed"
             )
 
             // Wait for 1 more day
@@ -414,7 +414,7 @@ describe("Burn and mint zombie bird", function () {
             // Try to mint on the same day again. Should fail.
             await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoZombieCanBeClaimed"
+                "NoZombieBirdCanBeClaimed"
             )
 
             // Wait for 1 more day
@@ -441,7 +441,7 @@ describe("Burn and mint zombie bird", function () {
             // Try to mint on the same day again. Should fail.
             await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoZombieCanBeClaimed"
+                "NoZombieBirdCanBeClaimed"
             )
 
             // Wait for 10 more day
@@ -480,7 +480,7 @@ describe("Burn and mint zombie bird", function () {
             // Try to mint on the same day again. Should fail.
             await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
                 SpookyBirdsCandyMock,
-                "NoZombieCanBeClaimed"
+                "NoZombieBirdCanBeClaimed"
             )
 
             // Wait for 30 more days
