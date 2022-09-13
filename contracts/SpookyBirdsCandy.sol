@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-import "hardhat/console.sol";
+//import "hardhat/console.sol";
 
 interface IZombieBirdContract {
     function mint(address to, uint qty) external returns (bool);
@@ -276,13 +276,13 @@ contract SpookyBirdsCandy is ERC721A, Ownable, Pausable {
         }
 
         if(addressBoughtZombieBirdQty == 0) revert NoZombieCanBeClaimed(); // Need more or equal to 30 days
-        console.log("Qty minted", addressBoughtZombieBirdQty);
+        //console.log("Qty minted", addressBoughtZombieBirdQty);
         bool canMint = _zombieBirdContract.mint(msg.sender, addressBoughtZombieBirdQty);
         if (!canMint) revert UnableToMintZombieBird();
         emit ZombieClaimed(msg.sender, block.timestamp, addressBoughtZombieBirdQty);
     }
 
-    function getCurrentBlockTimestamp() external view returns (uint256) {
+    function getCurrentBlockTimestamp() external view returns (uint) {
         return block.timestamp;
     }
 }

@@ -200,7 +200,7 @@ describe("Burn and mint zombie bird", function () {
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
 
-        it("Should able to mint if 2 burns which have taken 30 days", async function () {
+        it("Should burn #1", async function () {
             // Admin mints 12 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 12)
 
@@ -243,9 +243,9 @@ describe("Burn and mint zombie bird", function () {
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
 
-        it("Should able to mint if 3 burns which have taken 32 days", async function () {
-            // Admin mints 20 candies to account 1
-            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 20)
+        it("Should burn #2", async function () {
+            // Admin mints 24 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 24)
 
             // Get timestamp
             const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
@@ -291,8 +291,8 @@ describe("Burn and mint zombie bird", function () {
             await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
 
-        it.only("Should able to mint if 5 burns which have taken 90 days", async function () {
-            // Admin mints 20 candies to account 1
+        it("Should burn #3", async function () {
+            // Admin mints 24 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 24)
 
             // Get timestamp
@@ -437,6 +437,45 @@ describe("Burn and mint zombie bird", function () {
             expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 1)).to.be.equal(true)
             expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 2)).to.be.equal(true)
             expect(await SpookyBirdsCandyMock._addressZombieBirdBoughtHasDistributed(account1.address, 3)).to.be.equal(true)
+
+            // Admin mints 4 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 4)
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([24, 25, 27, 26])
+
+            // Wait for 1 more day
+            {
+                const time = timestamp + 86400 * 45
+                await helpers.time.increaseTo(time);
+            }
+
+            // Admin mints 4 candies to account 1
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 8)
+
+            // Try burn 4 candies
+            await SpookyBirdsCandyMock.connect(account1).burnCandyToMintZombieBird([28, 30, 29, 31, 32, 33, 35, 34])
+
+            // Try to mint on the same day again. Should fail.
+            await expect(SpookyBirdsCandyMock.connect(account1).mintZombieBird()).to.be.revertedWithCustomError(
+                SpookyBirdsCandyMock,
+                "NoZombieCanBeClaimed"
+            )
+
+            // Wait for 30 more days
+            {
+                const time = timestamp + 86400 * 75
+                await helpers.time.increaseTo(time);
+            }
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
+
+            {
+                const time = timestamp + 86400 * 76
+                await helpers.time.increaseTo(time);
+            }
+
+            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
     });
 });
