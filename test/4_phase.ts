@@ -49,7 +49,7 @@ describe("Phase", function () {
             await SpookyBirdsCandyMock.setPhase(2, tree2.getHexRoot())
         })
 
-        it("Should not be able to set phase if phase no more than 3", async function () {
+        it("Should not be able to set phase if phase no more than 2", async function () {
             await expect(
                 SpookyBirdsCandyMock.setPhase(3, currentMerkleProof)
             ).to.be.reverted
