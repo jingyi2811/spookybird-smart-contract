@@ -1,30 +1,27 @@
-import { ethers } from "hardhat";
-import { expect } from "chai";
-import { SpookyBirdsCandy, SpookyBirdsCandy__factory } from '../typechain-types'
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers'
+import {ethers} from "hardhat";
+import {expect} from "chai";
+import {SpookyBirdsCandy} from '../typechain-types'
 
-describe("BaseUrl", function () {
-    let admin: SignerWithAddress
-    let account1: SignerWithAddress
-    let account2: SignerWithAddress
-    let SpookyBirdsCandyFactory: SpookyBirdsCandy__factory
-    let SpookyBirdsCandyMock: SpookyBirdsCandy
+describe("BaseURI", function () {
+    let admin: any
+    let account1: any
+    let SpookyBirdsCandyFactory: any
+    let SpookyBirdsCandyMock: any
 
     beforeEach(async function () {
-        [admin, account1, account2] = await ethers.getSigners();
-        SpookyBirdsCandyFactory = await ethers.getContractFactory("SpookyBirdsCandy", admin) as SpookyBirdsCandy__factory;
+        [admin, account1] = await ethers.getSigners();
+        SpookyBirdsCandyFactory = await ethers.getContractFactory("SpookyBirdsCandy", admin);
         SpookyBirdsCandyMock = await SpookyBirdsCandyFactory.deploy("http://ggwp.com");
     });
 
-    describe("SET BASE_URL", function () {
-        it("Should able to set base url", async function () {
-            await SpookyBirdsCandyMock.setBaseURI("http://ggwp.co")
+    describe("BaseURI", function () {
+        it("Should able to set different base uri if owner", async function () {
             await SpookyBirdsCandyMock.setBaseURI("http://ggwp.co")
         })
 
-        it('Should not set the base url - NOT OWNER', async function () {
+        it('Should able to set different base uri if not owner', async function () {
             await expect(
-                SpookyBirdsCandyMock.connect(account2).setBaseURI("http://ggwp.co")
+                SpookyBirdsCandyMock.connect(account1).setBaseURI("http://ggwp.co")
             ).to.be.revertedWith('Ownable: caller is not the owner');
         });
     });

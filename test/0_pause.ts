@@ -13,89 +13,72 @@ describe("Pause", function () {
         SpookyBirdsCandyMock = await SpookyBirdsCandyFactory.deploy("http://");
     });
 
-    describe("By default", function () {
-        describe("Without pressing pause or unpause", function () {
-            it("Should be able to mint, transfer and burn with setApprovalForAll", async function () {
-                // mint
-                await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
+    describe("Pausable", function () {
+        it("Should be able to mint, transfer and burn if not doing anything", async function () {
+            // mint
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
+            // transfer
+            await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
+            // burn
+            await SpookyBirdsCandyMock.connect(admin).burn(0);
+        })
 
-                // transfer
-                await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
-                // burn
-                await SpookyBirdsCandyMock.connect(admin).burn(0);
-            })
+        it("Should be able to mint, transfer and burn if unpause", async function () {
+            // tru tp unpause, should fail
+            await expect(SpookyBirdsCandyMock.connect(admin).unpause())
+                .to.be.revertedWith('Pausable: not paused');
 
-            it("Should be able to mint, transfer and burn with approve ", async function () {
-                // mint
-                await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
-                // transfer
-                await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
-                // burn
-                await SpookyBirdsCandyMock.connect(admin).burn(0);
-            })
-        });
+            // Pause
+            await SpookyBirdsCandyMock.connect(admin).pause();
 
-        describe("Pause", function () {
-            it("Should not be able to mint, transfer and burn", async function () {
-                // pause
-                await SpookyBirdsCandyMock.connect(admin).pause();
+            // Unpause
+            await SpookyBirdsCandyMock.connect(admin).unpause();
 
-                // mint
-                await expect(SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1))
-                    .to.be.revertedWith('Pausable: paused');
+            // mint
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
 
-                // unpause
-                await SpookyBirdsCandyMock.connect(admin).unpause();
+            // transferFrom
+            await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
 
-                // mint
-                await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
+            // burn
+            await SpookyBirdsCandyMock.connect(admin).burn(0);
+        })
 
-                // pause
-                await SpookyBirdsCandyMock.connect(admin).pause();
+        it("Should not be able to mint, transfer and burn if paused", async function () {
+            // pause
+            await SpookyBirdsCandyMock.connect(admin).pause();
 
-                // transfer
-                await expect(SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0))
-                    .to.be.revertedWith('Pausable: paused');
+            // mint
+            await expect(SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1))
+                .to.be.revertedWith('Pausable: paused');
 
-                await SpookyBirdsCandyMock.connect(account1).setApprovalForAll(admin.address, true);
+            // unpause
+            await SpookyBirdsCandyMock.connect(admin).unpause();
 
-                // burn
-                await expect(SpookyBirdsCandyMock.connect(admin).burn(0))
-                    .to.be.revertedWith('Pausable: paused');
-            })
+            // mint
+            await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
 
-            it("Non admin should not able to pause", async function () {
-                await expect(SpookyBirdsCandyMock.connect(account1).pause())
-                    .to.be.revertedWith('Ownable: caller is not the owner');
-            })
-        });
+            // pause
+            await SpookyBirdsCandyMock.connect(admin).pause();
 
-        describe("Unpause", function () {
-            it("Should not be able to mint, transfer and burn", async function () {
-                // Try unpause
-                await expect(SpookyBirdsCandyMock.connect(admin).unpause())
-                    .to.be.revertedWith('Pausable: not paused');
+            // try to transferFrom, should fail
+            await expect(SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0))
+                .to.be.revertedWith('Pausable: paused');
 
-                // Pause
-                await SpookyBirdsCandyMock.connect(admin).pause();
+            // burn
+            await expect(SpookyBirdsCandyMock.connect(admin).burn(0))
+                .to.be.revertedWith('Pausable: paused');
+        })
 
-                // Unpause
-                await SpookyBirdsCandyMock.connect(admin).unpause();
+        it("Should not be able to pause if not admin", async function () {
+            await expect(SpookyBirdsCandyMock.connect(account1).pause())
+                .to.be.revertedWith('Ownable: caller is not the owner');
+        })
 
-                // mint
-                await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 1);
-
-                // transfer
-                await SpookyBirdsCandyMock.connect(account1).transferFrom(account1.address, account2.address, 0);
-                // burn
-                await SpookyBirdsCandyMock.connect(admin).burn(0);
-            })
-
-            it("Non admin should not able to unpause", async function () {
-                await expect(SpookyBirdsCandyMock.connect(account1).unpause())
-                    .to.be.revertedWith('Ownable: caller is not the owner');
-            })
-        });
+        it("Should not be able to unpause if not admin", async function () {
+            await expect(SpookyBirdsCandyMock.connect(account1).unpause())
+                .to.be.revertedWith('Ownable: caller is not the owner');
+        })
     });
 });
 

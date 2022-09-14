@@ -3,19 +3,17 @@ import {expect} from "chai";
 
 describe("Deposit", function () {
     let admin: any
-    let account1: any
-    let account2: any
     let SpookyBirdsCandyFactory: any
     let SpookyBirdsCandyMock: any
 
     beforeEach(async function () {
-        [admin, account1, account2] = await ethers.getSigners();
+        [admin] = await ethers.getSigners();
         SpookyBirdsCandyFactory = await ethers.getContractFactory("SpookyBirdsCandy");
         SpookyBirdsCandyMock = await SpookyBirdsCandyFactory.deploy("http://");
     });
 
     describe("Should reject deposit",  function () {
-        it("Should invoke the payable function", async function () {
+        it("Should not deposit by invoking the payable function which is not exists", async () => {
             await expect(
                 admin.sendTransaction({
                     to: SpookyBirdsCandyMock.address,
@@ -24,7 +22,7 @@ describe("Deposit", function () {
             ).to.be.reverted;
         })
 
-        it('should invoke the fallback function', async () => {
+        it('should not deposit by invoking the fallback function which is not exists', async () => {
             const tx = admin.sendTransaction({
                 to: SpookyBirdsCandyMock.address,
                 data: "0x",

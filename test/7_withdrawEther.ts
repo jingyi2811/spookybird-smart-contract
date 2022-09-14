@@ -1,10 +1,8 @@
 import {ethers} from "hardhat";
-import {expect} from "chai";
 import keccak256 from "keccak256";
 import {MerkleTree} from "merkletreejs";
-import {BigNumber} from "ethers";
 
-describe("Deposit", function () {
+describe("WithdrawEther", function () {
     let admin: any
     let account1: any
     let account2: any
@@ -29,8 +27,9 @@ describe("Deposit", function () {
     });
 
     describe("Should withdraw ether",  function () {
-        it("Should able to withdraw", async function () {
+        it("Should be able to withdraw", async function () {
             {
+                console.log('Check contract address balance')
                 const provider = ethers.provider;
                 const balance = await provider.getBalance(SpookyBirdsCandyMock.address);
                 console.log(balance)
@@ -39,12 +38,14 @@ describe("Deposit", function () {
             await SpookyBirdsCandyMock.connect(account1).presaleMint(account1Proof, { value: ethers.utils.parseEther("0.276") });
 
             {
+                console.log('Check contract address balance again after receiving ether')
                 const provider = ethers.provider;
                 const balance = await provider.getBalance(SpookyBirdsCandyMock.address);
                 console.log(balance)
             }
 
             {
+                console.log('Check admin address after receiving ether')
                 const provider = ethers.provider;
                 const balance = await provider.getBalance(admin.address);
                 console.log(balance)
@@ -53,36 +54,18 @@ describe("Deposit", function () {
             await SpookyBirdsCandyMock.connect(admin).withdraw()
 
             {
+                console.log('Check contract address after all ether was withdrwn')
                 const provider = ethers.provider;
                 const balance = await provider.getBalance(SpookyBirdsCandyMock.address);
                 console.log(balance)
             }
 
             {
+                console.log('Check admin address again after receiving ether')
                 const provider = ethers.provider;
                 const balance = await provider.getBalance(admin.address);
                 console.log(balance)
             }
         })
     })
-
-    describe("Should reject deposit",  function () {
-        it("Should invoke the payable function", async function () {
-            await expect(
-                admin.sendTransaction({
-                    to: SpookyBirdsCandyMock.address,
-                    value: ethers.utils.parseEther("1.0")
-                })
-            ).to.be.reverted;
-        })
-
-        it('should invoke the fallback function', async () => {
-            const tx = admin.sendTransaction({
-                to: SpookyBirdsCandyMock.address,
-                data: "0x",
-            });
-
-            await expect(tx).to.be.reverted;
-        });
-    });
 });
