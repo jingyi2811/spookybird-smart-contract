@@ -405,17 +405,6 @@ describe("Calculate gas", function () {
                 86,
                 87,
             ])
-
-            const timestamp = await (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
-
-            // Set external address
-            await SpookyBirdsCandyMock.connect(admin).setZombieBirdAddress(ZombieBirdFactoryMock.address)
-
-            const now = timestamp + 2 + 2_592_000
-            await ethers.provider.send('evm_setNextBlockTimestamp', [now]);
-            await ethers.provider.send('evm_mine', []);
-
-            await SpookyBirdsCandyMock.connect(account1).mintZombieBird()
         })
     })
 });
