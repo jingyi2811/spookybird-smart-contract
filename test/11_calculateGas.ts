@@ -304,7 +304,6 @@ describe("Calculate gas", function () {
 
     describe("Burn candy",  function () {
         it("Should burn", async function () {
-            await SpookyBirdsCandyMock.connect(admin).setPhase(3, ethers.utils.formatBytes32String(""));
 
             // Admin mints 150 candies to account 1
             await SpookyBirdsCandyMock.connect(admin).mint(account1.address, 150)

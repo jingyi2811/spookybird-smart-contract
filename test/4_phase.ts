@@ -38,7 +38,6 @@ describe("Phase", function () {
             await SpookyBirdsCandyMock.setPhase(0, currentMerkleProof)
             await SpookyBirdsCandyMock.setPhase(1, currentMerkleProof)
             await SpookyBirdsCandyMock.setPhase(2, currentMerkleProof)
-            await SpookyBirdsCandyMock.setPhase(3, currentMerkleProof)
 
             const leaves1 = [account1.address].map(x => keccak256(x))
             const tree1 = new MerkleTree(leaves1, keccak256, { sortPairs: true })
@@ -52,11 +51,11 @@ describe("Phase", function () {
 
         it("Should not be able to set phase if phase no more than 3", async function () {
             await expect(
-                SpookyBirdsCandyMock.setPhase(4, currentMerkleProof)
+                SpookyBirdsCandyMock.setPhase(3, currentMerkleProof)
             ).to.be.reverted
 
             await expect(
-                SpookyBirdsCandyMock.setPhase(5, currentMerkleProof)
+                SpookyBirdsCandyMock.setPhase(4, currentMerkleProof)
             ).to.be.reverted
         })
 

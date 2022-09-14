@@ -19,10 +19,9 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
      */
 
     enum Phase {
-        NULL, // Either haven't start or have ended (DEFAULT VALUE)
-        PRE_SALE,    // Stage 1
-        PUBLIC_MINT, // Stage 2
-        ZOMBIE_BIRD_MINT  // Stage 3
+        NULL,
+        PRE_SALE,
+        PUBLIC_MINT
     }
 
     /**
@@ -41,7 +40,6 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
     // Stage 2 - PUBLIC_MINT
     mapping(address => uint) public _publicMintAirDropAddressQty;
 
-    // Stage 3 - ZOMBIE_BIRD_MINT
     IZombieBirdContract public _zombieBirdContract;
     bool public _hasZombieBirdContractSet;
     mapping(address => uint) public _addressZombieBirdBoughtTimes;
@@ -228,7 +226,7 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
      * 3 - User claims his bought zombie bird after 30 days.
      */
 
-    function burnCandyToMintZombieBird(uint[] calldata tokenIds_) external phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
+    function burnCandyToMintZombieBird(uint[] calldata tokenIds_) external {
         uint length = tokenIds_.length; // Save gas
         if (length == 0) revert CandyQtyMustNotBe0();
         if (length % 4 != 0) revert CandyQtyMustBeInMutiplyOf4();
@@ -257,13 +255,13 @@ contract SpookyBirdsCandy is ERC721AQueryable, Ownable, Pausable {
         emit ZombieBirdSaleBurnCandy(msg.sender, block.timestamp, length);
     }
 
-    function setZombieBirdAddress(address address_) external onlyOwner phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
+    function setZombieBirdAddress(address address_) external onlyOwner {
         if (_hasZombieBirdContractSet) revert ZombieBirdAddressWasSetBefore();
         _zombieBirdContract = IZombieBirdContract(address_);
         _hasZombieBirdContractSet = true;
     }
 
-    function mintZombieBird() external phaseRequired(Phase.ZOMBIE_BIRD_MINT) {
+    function mintZombieBird() external {
         if (!_hasZombieBirdContractSet) revert ZombieBirdAddressWasNotYetSet();
         uint times = _addressZombieBirdBoughtTimes[msg.sender];
         uint addressBoughtZombieBirdQty = 0;

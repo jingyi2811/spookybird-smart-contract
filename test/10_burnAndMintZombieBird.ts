@@ -29,8 +29,6 @@ describe("Burn and mint zombie bird", function () {
 
         const ZombieBirdFalseFactory = await ethers.getContractFactory("ZombieBirdFalse");
         ZombieBirdFactoryMockFalse = await ZombieBirdFalseFactory.deploy();
-
-        await SpookyBirdsCandyMock.connect(admin).setPhase(3, ethers.utils.formatBytes32String(""));
     });
 
     describe("Burn candy",  function () {
